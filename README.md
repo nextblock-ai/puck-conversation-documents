@@ -1,71 +1,34 @@
-# puck-conversation-documents README
+# Puck Conversation Documents
 
-This is the README for your extension "puck-conversation-documents". After writing up a brief description, we recommend including the following sections.
+Puck Conversation Documents is a Visual Studio Code extension that provides a portable document format for GPT-4 chat conversations. It allows users to easily create, view, and edit conversation documents with GPT-4, enabling a more seamless and interactive experience with the AI model.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Set OpenAI API Key: Securely save your OpenAI API key for use within the extension.
+- Open Chat Document: Open a chat document with a custom editor for creating and editing conversations with GPT-4.
+- Chat Editor: A custom editor that provides a user-friendly interface for interacting with GPT-4 in a chat-like format.
 
-For example if there is an image subfolder under your extension project workspace:
+## Getting Started
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Install the Puck Conversation Documents extension from the Visual Studio Code marketplace.
+2. Reload Visual Studio Code after the installation is complete.
+3. Open the Command Palette (Ctrl+Shift+P on Windows/Linux, Cmd+Shift+P on macOS) and run the command `puck.setOpenAIKey` to set your OpenAI API key.
+4. Create a new file with the `.chat` file extension or open an existing chat document.
+5. The custom chat editor will automatically open, allowing you to start interacting with GPT-4.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Usage
 
-## Requirements
+In the chat editor, you can perform the following actions:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Add new messages by typing in the input field at the bottom of the editor and pressing Ctrl+Enter.
+- Update the conversation title by double-clicking on the title and entering a new name.
+- Change the prompt by double-clicking on the prompt text and selecting or creating a new prompt.
+- Move, archive, or change the role of messages using the toolbar buttons on each message card.
 
-## Extension Settings
+## Contributing
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+If you would like to contribute to the development of this extension, please feel free to submit a pull request or open an issue on the GitHub repository.
 
-For example:
+## License
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Puck Conversation Documents extension is licensed under the [MIT License](https://opensource.org/licenses/MIT).
