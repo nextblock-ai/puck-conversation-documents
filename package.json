@@ -12,6 +12,26 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Puck Settings",
+      "properties": {
+        "puck.apikey": {
+          "type": "password",
+          "default": "sk-",
+          "description": "API key for the OpenAI GPT service."
+        },
+        "puck.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "description": "Default temperature to use in queries"
+        },
+        "puck.maxTokens": {
+          "type": "number",
+          "default": 2048,
+          "description": "Default max tokens to use in queries"
+        }
+      }
+    },
     "commands": [
       {
         "command": "puck.setOpenAIKey",

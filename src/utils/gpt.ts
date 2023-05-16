@@ -27,7 +27,7 @@ const systemDelimiter = "🌐";
 export async function sendQuery(query: GPTChatConversation): Promise<string> {
 
     // get the api key from settings
-    const config = vscode.workspace.getConfiguration('attila');
+    const config = vscode.workspace.getConfiguration('puck');
     const apikey = getOpenAIKey();
     delete query.apikey;
     try {
