@@ -4,7 +4,7 @@
 import axios from 'axios';
 import * as vscode from 'vscode';
 import { log } from './outputLog';
-import { getOpenAIKey } from '../commands/set-openai-key';
+import { getOpenAIKey } from '../commands/SetOpenAIKeyCommand';
 
 export interface GPTChatMessage {
     role: 'user' | 'assistant' | 'system';
