@@ -1,7 +1,14 @@
 {
   "name": "puck-conversation-documents",
-  "displayName": "puck-conversation-documents",
+  "displayName": "Puck - Conversation Documents",
   "description": "A portable document format for GPT-4 chat conversations",
+  "publisher": "NextBlock.ai",
+  "icon": "./icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nextblock-ai/conversation-documents.git",
+    "branch": "main"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.78.0"
@@ -13,39 +20,25 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Puck Settings",
+      "title": "Puck Conversation Documents Settings",
       "properties": {
-        "puck.apikey": {
-          "type": "password",
-          "default": "sk-",
-          "description": "API key for the OpenAI GPT service."
-        },
-        "puck.temperature": {
+        "puck.conversationDocuments.settings": {
           "type": "number",
           "default": 0.7,
-          "description": "Default temperature to use in queries"
-        },
-        "puck.maxTokens": {
-          "type": "number",
-          "default": 2048,
-          "description": "Default max tokens to use in queries"
+          "description": "Sample setting"
         }
       }
     },
     "commands": [
       {
-        "command": "puck.setOpenAIKey",
-        "title": "Set OpenAI Key"
-      },
-      {
         "command": "puck.conversationDocuments.openChatDocumentView",
-        "title": "Open Chat Document"
+        "title": "Puck - Open Chat Document"
       }
     ],
     "customEditors": [
       {
         "viewType": "chatEditor",
-        "displayName": "Chat Editor",
+        "displayName": "Conversation Editor",
         "selector": [
           {
             "filenamePattern": "*.chat"
@@ -55,6 +48,9 @@
       }
     ]
   },
+  "extensionDependencies": [
+    "NextBlock.puck-core"
+  ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
@@ -77,6 +73,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "axios": "^1.4.0"
+    "axios": "^1.4.0",
+    "font-awesome": "^4.7.0"
   }
 }

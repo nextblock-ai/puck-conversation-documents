@@ -1,0 +1,7 @@
+We need to investigate why the .chat custom document views are not showing properly in the VS Code app. The file at src/commands/ConversationDocumentsCommand.ts implements this functionality but it is large, so you'll need to create a few tasks to figure out what's going on:
+1. Get a line count of the file
+2. create a task for every 100 lines of code
+3. title the task: Investigate Lines 1-100 to find out why chat document view isnt showing, Investigate Lines 101-200 to find out why chat document view isnt showing, etc.
+4. For each of these tasks, use sed to list out the lines of code you're investigating. For example, for the first task, you'd run `sed -n 1,100p src/commands/ConversationDocumentsCommand.ts`
+5. Once you have found the issue, then create a file called temp_found.txt and put the line number and description of the issue in that file. For example, if you found the issue on line 150, then you'd put "Line 150: The issue is that the blah blah blah is not blah blah blah"
+6. Create one more task to review the temp_found.txt file and create a bug for each issue you found.

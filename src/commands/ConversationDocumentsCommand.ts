@@ -4,17 +4,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as vscode from "vscode";
 import { Command } from "../utils/Command";
-import { sendQuery } from "../utils/gpt";
 import { loadScript } from "../utils/scripts";
 import { loadStyle } from "../utils/style";
-
-const org = "puck.conversationDocuments";
+import { sendQuery, streamQuery } from "../utils/core";
 
 // all commands are a subclass of Command
 class ConversationDocumentsCommand extends Command {
 
     constructor(commandId: string, title: string, context: vscode.ExtensionContext) {
-        super(`${org}.${commandId}`, title, context);
+        super(commandId, title, context);
     }
 
     async execute() {
@@ -23,6 +21,7 @@ class ConversationDocumentsCommand extends Command {
 }
 
 export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
+
     // register the custom document provider
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
         const provider = new ChatEditorProvider(context);
@@ -43,7 +42,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
         const docContent = document.getText(); 
         const initialContent = Object.assign({
             messages: [],
-            prompt: 'You are a helpful assistant',
+            prompt: 'You are a helpful assistant.',
             title: 'New Conversation',
             scripts: [],
         }, JSON.parse(docContent || '{}'));
@@ -61,7 +60,6 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
             <head>
                 <meta charset="UTF-8">
                 <title>New Conversation</title>
-                ${loadStyle(webview, extensionUri, 'resources/css/fontawesome.css')}
                 <style>
                 :root {
                     --background-color: #1e1e1e;
@@ -122,7 +120,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                     margin-bottom: 1rem;
                     padding: 2rem;
                     position: relative;
-                    text-align: center;
+                    text-align: left;
                 }
                 .message-role {
                     margin-bottom: 0.5rem;
@@ -178,6 +176,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                 footer {
                     background-color: var(--footer-color);
                     padding: 1rem;
+                    padding-right: 2rem;
                     position: fixed;
                     bottom: 0;
                     width: 100%;
@@ -229,7 +228,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                     margin-bottom: 1rem;
                     padding: 0.5rem;
                     resize: none;
-                    width: 100%;
+                    width: 90%;
                 }
                 .modal-footer {
                     display: flex;
@@ -246,11 +245,54 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                     padding: 0.5rem 1rem;
                 }
                 </style>
+                ${loadStyle(webview, extensionUri, 'resources/css/font-awesome.min.css')}
             </head>
             <body>
                 ${loadScript(webview, extensionUri, 'resources/js/marked.min.js')}
                 <script id="rendered-js">
+                
                     let vscodeApi;
+                    // add a new message card to the chat interface
+                    function addMessageCard(role, content) {
+                        const chatContainer = document.querySelector('.chat-container');
+                        const messageCard = createMessageCard(role, content);
+                        // look for the plus button and remove it but keep a reference to it
+                        let plusButton = chatContainer.querySelector('.plus-button');
+                        if(plusButton !== null) {
+                            plusButton.remove();
+                        } else {
+                            plusButton = document.createElement('button');
+                            plusButton.classList.add('plus-button');
+                            plusButton.innerText = '+';
+                            plusButton.addEventListener('click', () => {
+                                const newMessage = { role: 'user', content: '' };
+                                messages.push(newMessage);
+                                addMessageCard(newMessage.role, newMessage.content);
+                            });
+                        }
+                        // add the message to the chat interface
+                        chatContainer.appendChild(messageCard);
+                        // add the plus button back to the chat interface
+                        chatContainer.appendChild(plusButton);
+                        return messageCard;
+                    }
+
+                    function createUI() {
+                        const container = document.createElement('div');
+                        container.innerHTML = \`
+                            <header>
+                                <div class="conversation-title" contenteditable="false">${initialContent && initialContent.title || 'New Conversation'}</div>
+                                <div class="prompt" contenteditable="false">${initialContent && initialContent.prompt || 'You are a helpful assistant'}</div>
+                                <button class="collapse-button">\ /</button>
+                            </header>
+                            <div class="chat-container"></div>
+                            <footer>
+                                <textarea class="chat-input"></textarea>
+                                ctrl+enter to submit
+                            </footer>\`;
+                        document.body.appendChild(container);
+                    }
+
                     function createChatInterface(messages, onChatMessageSent) {
                         const onNewMessageAdded = (newMessage) => {
                             vscodeApi.postMessage({
@@ -259,43 +301,8 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                             });
                         };
                         // create the UI elements for the chat interface
-                        function createUI() {
-                            const container = document.createElement('div');
-                            container.innerHTML = \`
-                                <header>
-                                    <div class="conversation-title" contenteditable="false">${initialContent && initialContent.title || 'New Conversation'}</div>
-                                    <div class="prompt">${initialContent && initialContent.prompt || 'You are a helpful assistant'}</div>
-                                    <button class="collapse-button"><i class="fas fa-chevron-down"></i></button>
-                                </header>
-                                <div class="chat-container"></div>
-                                <footer>
-                                    <textarea class="chat-input"></textarea>
-                                </footer>\`;
-                            document.body.appendChild(container);
-        }
-                        function addMessageCard(role, content) {
-                            const chatContainer = document.querySelector('.chat-container');
-                            const messageCard = createMessageCard(role, content);
-                            // look for the plus button and remove it but keep a reference to it
-                            let plusButton = chatContainer.querySelector('.plus-button');
-                            if(plusButton !== null) {
-                                plusButton.remove();
-                            } else {
-                                plusButton = document.createElement('button');
-                                plusButton.classList.add('plus-button');
-                                plusButton.innerText = '+';
-                                plusButton.addEventListener('click', () => {
-                                    const newMessage = { role: 'user', content: '' };
-                                    messages.push(newMessage);
-                                    addMessageCard(newMessage.role, newMessage.content);
-                                });
-                            }
-                            // add the message to the chat interface
-                            chatContainer.appendChild(messageCard);
-                            // add the plus button back to the chat interface
-                            chatContainer.appendChild(plusButton);
-                            return messageCard;
-                        }
+
+         
                         // init the chat interface
                         function init() {
                             createUI();
@@ -311,16 +318,9 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                                 titleElement.focus();
                             });
                             document.querySelector('.prompt').addEventListener('dblclick', () => {
-                                // show the prompt selection dialog
-                                const prompts = [
-                                    'What is your favorite color?',
-                                    'What is your favorite food?',
-                                    'What is your favorite animal?',
-                                ];
-                                createPromptSelectionModal(prompts, (selectedPrompt) => {
-                                    document.querySelector('.prompt').innerText = selectedPrompt;
-                                });
-        
+                                const titleElement = document.querySelector('.prompt');
+                                titleElement.contentEditable = 'true';
+                                titleElement.focus();
                             });
                             document.querySelector('.conversation-title').addEventListener('keydown', (event) => {
                                 if (event.key === 'Enter') {
@@ -328,6 +328,17 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                                     const titleElement = document.querySelector('.conversation-title');
                                     titleElement.contentEditable = 'false';
                                     titleElement.blur();
+                                    // Update the conversation title
+                                    
+                                }
+                            });
+                            document.querySelector('.prompt').addEventListener('keydown', (event) => {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault();
+                                    const titleElement = document.querySelector('.prompt');
+                                    titleElement.contentEditable = 'false';
+                                    titleElement.blur();
+                                    setPrompt(titleElement.textContent);
                                     // Update the conversation title
                                 }
                             });
@@ -354,6 +365,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                         }
                         init();
                     }
+                    
                     const sendMessageToExtension = (data) => {
                         if(!vscodeApi) { vscodeApi = acquireVsCodeApi(); }
                         vscodeApi.postMessage({
@@ -361,6 +373,28 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                             data
                         });
                     };
+                
+                    let isStreaming = false;
+                    let currentAssistantCard;
+
+                    function updateStreamedMessage(message) {
+                        if (isStreaming === false) {
+                            // If this is the start of the streamed message.
+                            isStreaming = true;
+                            const msg = message.response ? message.response : message;
+                            const newAssistantMessage = msg;
+                            messages.push(newAssistantMessage);
+                            currentAssistantCard = addMessageCard(newAssistantMessage.role, newAssistantMessage.content);
+                        } else {
+                            // If this is the next part of the streamed message.
+                            const lastMessage = messages[messages.length - 1];
+                            if (lastMessage && lastMessage.role === 'assistant') {
+                                lastMessage.content += message.content;
+                                currentAssistantCard.querySelector('.message-content').innerHTML = window.marked.marked(lastMessage.content);
+                            }
+                        }
+                    }
+
                     // create a single message card
                     function createMessageCard(role, content) {
                         const messageCard = document.createElement('div');
@@ -378,38 +412,55 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                         const toolbar = document.createElement('div');
                         toolbar.className = 'toolbar';
                         const moveButton = document.createElement('button');
-                        moveButton.innerHTML = '<i class="fas fa-arrows-alt"></i>';
+                        moveButton.innerHTML = '^' //'<i class="fa fa-arrows-alt"></i>';
                         const archiveButton = document.createElement('button');
-                        archiveButton.innerHTML = '<i class="fas fa-archive"></i>';
+                        archiveButton.innerHTML = '@' //'<i class="fa fa-archive"></i>';
                         toolbar.appendChild(moveButton);
                         toolbar.appendChild(archiveButton);
         
                         const messageContent = document.createElement('div');
                         messageContent.className = 'message-content';
-                        messageContent.innerHTML = window.marked.marked(content);
+                        messageContent.innerHTML = window.marked.marked(content || '');
                         messageCard.appendChild(toolbar);
                         messageCard.appendChild(messageRole);
                         messageCard.appendChild(messageContent);
                         return messageCard;
                     }
+
                     // receive messages from extension and process them
                     window.addEventListener('message', (event) => {
                         const message = event.data;
                         const command = message.command;
-                        const conversation = message.response;
-                        const lastMessage = conversation && conversation.length > 0 ? conversation[conversation.length - 1] : '';
-                        console.log('Received message from extension', message);
                         switch (command) {
-                            case 'chatGPTResponse':
-                                messages.push({ role: 'assistant', content: lastMessage });
-                                setChatMessages(conversation);
-                                onConversationChanged(conversation);
+
+                            case 'initializeContent':
+                                setDocumentTitle(message.data.title);
+                                setChatMessages(message.data.messages);
+                                setPrompt(message.data.prompt);
                                 break;
+
+                            case 'initializeThemeSettings':
+                                document.body.style.backgroundColor = message.themeColor;
+                                document.body.style.fontFamily = message.editorFontFamily;
+                                break;
+                                
+                            case 'updateStream':
+                                if(message.response) {
+                                    updateStreamedMessage(message.response);
+                                } else {
+                                    const msg = message.data.messages[message.data.messages.length - 1];
+                                    updateStreamedMessage(msg);
+                                }
+
+                            case 'finishStream':
+                                isStreaming = false;
                         }
                     });
+
                     function setDocumentTitle(title) {
                         document.querySelector('.conversation-title').textContent = title;
                     }
+
                     function setChatMessages(messages) {
                         const chatContainer = document.querySelector('.chat-container');
                         chatContainer.innerHTML = '';
@@ -417,9 +468,11 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                             addMessageCard(message.role, message.content);
                         });
                     }
+
                     function setPrompt(prompt) {
                         document.querySelector('.prompt').textContent = prompt;
                     }
+
                     function createPromptSelectionModal(prompts, onSelectPrompt) {
                         const modal = document.createElement('div');
                         modal.className = 'modal';
@@ -433,7 +486,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
         
                         const closeButton = document.createElement('button');
                         closeButton.className = 'close-button';
-                        closeButton.innerHTML = '<i class="fas fa-times"></i>';
+                        closeButton.innerHTML = 'x'// '<i class="fa fa-times"></i>';
                         closeButton.addEventListener('click', () => {
                             modal.remove();
                         });
@@ -501,7 +554,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                         document.body.appendChild(modal);
                     }
         
-                    // Example usage:
+                    // prompt selection model - not implemented yet
                     const prompts = [
                         { title: 'Prompt 1', content: 'This is the content of prompt 1.' },
                         { title: 'Prompt 2', content: 'This is the content of prompt 2.' },
@@ -511,11 +564,13 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                     createPromptSelectionModal(prompts, (selectedPrompt) => {
                         console.log('Selected prompt:', selectedPrompt);
                     });
+                    
                     const messages = ${JSON.stringify(initialContent && initialContent.messages || [])};
                     createChatInterface(messages, (message) => {
                         messages.push({ role: 'user', content: message, });
                         sendMessageToExtension(messages);
                     });
+
                     document.addEventListener('keydown', (event) => {
                         if (event.altKey && event.key === 'Enter') {
                             // Submit the chat without the latest message
@@ -530,6 +585,7 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
 
         // package the theme settings for delivery to the webview
         const themeSettings = {
+            command: 'initializeThemeSettings',
             themeColor: vscode.workspace
                 .getConfiguration('workbench')
                 .get('colorTheme'),
@@ -551,18 +607,18 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
                 console.log('Received message:', message); // Add console log
                 switch (message.command) {
                     case 'chatGPT':
-                        const messages = message.data;
-                        updateDocumentContent(document, { messages: messages });
-                        const response = await sendQuery({
-                            messages: messages,
-                            model: 'gpt-4',
-                            max_tokens: 2048,
-                            temperature: 0.7,
-                            top_p: 1,
-                        });
-                        messages.push({ role: 'assistant', content: response });
-                        updateDocumentContent(document, { messages: messages });
-                        webviewPanel.webview.postMessage({ command: 'chatGPTResponse', response: messages });
+                        updateDocumentContent(document, { messages:  message.data });
+                        let messages = message.data;
+                        await streamQuery({
+                                messages: messages,
+                                model: 'gpt-4',
+                                max_tokens: 2048,
+                                temperature: 1,
+                                top_p: 1,
+                            }, 
+                            onStreamUpdated,
+                            onStreamFinished
+                        );
                         break;
                     case 'updateMessages':
                         updateDocumentContent(document, { messages: message.conversation });
@@ -578,6 +634,20 @@ export class ChatEditorProvider implements vscode.CustomTextEditorProvider {
             undefined,
             this.context.subscriptions
         );
+
+        const onStreamUpdated = (stream: any) => {
+            webviewPanel.webview.postMessage({
+                command: 'updateStream',
+                response: stream.choices[0].message
+            });
+        }
+        const onStreamFinished = (stream: any) => {
+            webviewPanel.webview.postMessage({
+                command: 'finishStream',
+                response: true
+            });
+        }
+
         // update the document with new content
         vscode.workspace.onDidChangeTextDocument((event) => {
             if (event.document.uri.toString() === document.uri.toString()) {
@@ -624,5 +694,5 @@ async function updateDocumentContent(
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(ChatEditorProvider.register(context));
-    const command = new ConversationDocumentsCommand("openChatDocumentView", "Open Chat Document", context);
+    const command = new ConversationDocumentsCommand("puck.conversationDocuments.openChatDocumentView", "Puck - Open Conversation", context);
 }
