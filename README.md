@@ -18,12 +18,13 @@ Puck Conversation Documents is a Visual Studio Code extension that provides a po
 
 ## Usage
 
-In the chat editor, you can perform the following actions:
+### Set OpenAI API Key
 
-- Add new messages by typing in the input field at the bottom of the editor and pressing Ctrl+Enter.
-- Update the conversation title by double-clicking on the title and entering a new name.
-- Change the prompt by double-clicking on the prompt text and selecting or creating a new prompt.
-- Move, archive, or change the role of messages using the toolbar buttons on each message card.
+To set your OpenAI API key, open the Command Palette (Ctrl+Shift+P on Windows/Linux, Cmd+Shift+P on macOS) and run the command `puck.setOpenAIKey`. You will be prompted to enter your OpenAI API key. Once you have entered your API key, it will be securely saved in your user settings.
+
+### Open Chat Document
+
+To open a chat document, create a new file with the `.chat` file extension or open an existing chat document. The custom chat editor will automatically open, allowing you to start interacting with GPT-4.
 
 ## Contributing
 

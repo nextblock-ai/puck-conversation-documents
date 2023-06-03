@@ -696,3 +696,4 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(ChatEditorProvider.register(context));
     const command = new ConversationDocumentsCommand("puck.conversationDocuments.openChatDocumentView", "Puck - Open Conversation", context);
 }
+ 
