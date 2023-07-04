@@ -2,14 +2,14 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as outputLogs from './utils/outputLog';
-import * as conversationDocumentsCommand from './commands/ConversationDocumentsCommand';
+import * as chatEditorProvider from './providers/ChatEditorProvider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
 	outputLogs.activate(context);
-	conversationDocumentsCommand.activate(context);
+	chatEditorProvider.activate(context);
 
 }
 
